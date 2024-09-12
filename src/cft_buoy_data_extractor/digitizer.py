@@ -41,8 +41,8 @@ class StationDataDigitizer:
                 ],
             )
             process.check_returncode()
-            img = cv2.imread(data_plot_tmp.name, -1)
             if self.debug:
+                img = cv2.imread(data_plot_tmp.name, -1)
                 self.show(img)
             return self.construct_xy_dict(data_tmp.name)
 
