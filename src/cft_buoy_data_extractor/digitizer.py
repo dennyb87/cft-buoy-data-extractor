@@ -75,7 +75,7 @@ class StationDataDigitizer:
         image = np.asarray(bytearray(self.response.content), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR) # -1 as it is
         height, width, _ = image.shape
-        cropped_image = image[30: height-200, 70: width-70]
+        cropped_image = image[31: height-200, 71: width-60]
         trajectory = self.isolate_trajectory(cropped_image)
         imghsv = cv2.cvtColor(trajectory, cv2.COLOR_BGR2HSV)
         lower_blue = np.array([110, 50, 50])
