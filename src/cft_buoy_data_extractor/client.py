@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime
 from urllib.parse import urlencode
 
 import requests
 
-from cft_buoy_data_extractor.constants import GraphType, Station
+from cft_buoy_data_extractor.constants import Graph, Graphs, Station
 from cft_buoy_data_extractor.digitizer import StationDataDigitizer
 
 
@@ -12,9 +13,26 @@ class StationDataRequest:
     station: Station
     begin_date: str
     end_date: str
-    graph_type: GraphType
+    graph: "Graphs"
     debug: bool = False
-    
+    keep_plots: bool = False
+
+    class UnsupportedTimedelta(Exception):
+        pass
+
+    @property
+    def timedelta_hours(self):
+        begin = datetime.strptime(self.begin_date, "%d/%m/%Y").date()
+        end = datetime.strptime(self.end_date, "%d/%m/%Y").date()
+        delta = end - begin
+        delta_days = delta.days + 1
+        if delta_days != 2:
+            raise self.UnsupportedTimedelta(
+                f"Graph behaviour is not consistent with different timedelta \
+                    therefore we only support {delta_days} days timedelta!"
+            )
+        return delta_days * 24
+
     @property
     def query_params(self):
         return urlencode(
@@ -22,7 +40,7 @@ class StationDataRequest:
                 id=self.station.value,
                 begin_date=self.begin_date,
                 end_date=self.end_date,
-                type=self.graph_type,
+                type=self.graph.value.type,
             )
         )
 
@@ -45,9 +63,10 @@ class CFTBuoyDataExtractor:
 if __name__ == "__main__":
     data_request = StationDataRequest(
         station=Station.BOA_GORGONA,
-        begin_date="06/09/2024",
-        end_date="07/09/2024",
-        graph_type=GraphType.SIGNIFICANT_WAVE_HEIGHT,
-        debug=True,
+        begin_date="13/09/2024",
+        end_date="14/09/2024",
+        graph=Graphs.SIGNIFICANT_WAVE_HEIGHT,
+        debug=False,
+        keep_plots=True,
     )
     CFTBuoyDataExtractor.get_station(data_request)

@@ -50,8 +50,9 @@ class StationDataDigitizer:
         out = {"x": [], "y": []}
         rows = csv.reader(open(temp_csv_path), delimiter=' ')
         for x, y in rows:
-            out["x"].append(float(x))
-            out["y"].append(float(y))
+            graph_cls = self.station_data_request.graph.value
+            out["x"].append(graph_cls.get_xaxis_value(float(x), self.station_data_request.timedelta_hours))
+            out["y"].append(graph_cls.get_yaxis_value(float(y)))
         return out
 
     def to_data(self) -> Dict[str, List[float]]:
@@ -82,7 +83,7 @@ class StationDataDigitizer:
         upper_blue = np.array([130, 255, 255])
         mask_blue = cv2.inRange(imghsv, lower_blue, upper_blue)
         contours, _ = cv2.findContours(mask_blue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(trajectory, contours, -1, (0,0,0), 2)    
+        cv2.drawContours(trajectory, contours, -1, (0,0,0), 1)    
         return trajectory
 
     def show(self, image):
