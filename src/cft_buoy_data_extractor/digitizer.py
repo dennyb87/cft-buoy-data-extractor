@@ -39,8 +39,12 @@ class StationDataDigitizer:
                     f"--output", f"{data_tmp.name}",
                     f"--plot", f"{data_plot_tmp.name}",
                 ],
+                stderr=subprocess.PIPE,
             )
-            process.check_returncode()
+            try:
+                process.check_returncode()
+            except subprocess.CalledProcessError as e:
+                raise Exception(process.stderr) from e
             if self.debug:
                 img = cv2.imread(data_plot_tmp.name, -1)
                 self.show(img)

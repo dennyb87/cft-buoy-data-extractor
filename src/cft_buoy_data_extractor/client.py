@@ -15,7 +15,6 @@ class StationDataRequest:
     end_date: str
     graph: "Graphs"
     debug: bool = False
-    keep_plots: bool = False
 
     class UnsupportedTimedelta(Exception):
         pass
@@ -49,7 +48,7 @@ class CFTBuoyDataExtractor:
     base_url = "https://www.cfr.toscana.it/ondametria/grafico_onda.php"
 
     @classmethod
-    def get_station(cls, station_data_request: "StationDataRequest"):
+    def get_station_data(cls, station_data_request: "StationDataRequest"):
         url = f"{cls.base_url}?{station_data_request.query_params}"
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         response = requests.get(url, headers=headers)
@@ -58,15 +57,3 @@ class CFTBuoyDataExtractor:
             response=response,
         ).to_data()
         return station_data
-
-
-if __name__ == "__main__":
-    data_request = StationDataRequest(
-        station=Station.BOA_GORGONA,
-        begin_date="13/09/2024",
-        end_date="14/09/2024",
-        graph=Graphs.SIGNIFICANT_WAVE_HEIGHT,
-        debug=False,
-        keep_plots=True,
-    )
-    CFTBuoyDataExtractor.get_station(data_request)
