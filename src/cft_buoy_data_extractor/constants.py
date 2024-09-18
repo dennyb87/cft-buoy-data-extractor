@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -9,7 +10,11 @@ class Station(str, Enum):
     CASTIGLIONE_PESCAIA = "TOS25000004"
 
 
+@dataclass
 class Graph(ABC):
+    date: str
+    hours: int
+
     @property
     @abstractmethod
     def unit(cls):
@@ -20,9 +25,8 @@ class Graph(ABC):
     def type(cls):
         pass
 
-    @staticmethod
-    def get_xaxis_value(value: float, timedelta_hours: float) -> float:
-        return value / 10 * timedelta_hours
+    def get_xaxis_value(self, value: float) -> float:
+        return value / 10 * self.hours
 
     @staticmethod
     def get_yaxis_value(value: float) -> float:
@@ -66,11 +70,3 @@ class SeaTemperature(Graph):
     def get_yaxis_value(value: float) -> float:
         """From 10 to 30 degrees Celsius"""
         return value * 20 + 10
-
-
-class Graphs(Enum):
-    SIGNIFICANT_WAVE_HEIGHT = SignificantWaveHeight()
-    PEAK_PERIOD = PeakPeriod()
-    PEAK_DIRECTION = PeakDirection()
-    SEA_TEMPERATURE = SeaTemperature()
-

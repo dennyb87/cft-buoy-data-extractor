@@ -54,9 +54,9 @@ class StationDataDigitizer:
         out = {"x": [], "y": []}
         rows = csv.reader(open(temp_csv_path), delimiter=' ')
         for x, y in rows:
-            graph_cls = self.station_data_request.graph.value
-            out["x"].append(graph_cls.get_xaxis_value(float(x), self.station_data_request.timedelta_hours))
-            out["y"].append(graph_cls.get_yaxis_value(float(y)))
+            graph = self.station_data_request.graph
+            out["x"].append(graph.get_xaxis_value(float(x)))
+            out["y"].append(graph.get_yaxis_value(float(y)))
         return out
 
     def to_data(self) -> Dict[str, List[float]]:
@@ -75,12 +75,23 @@ class StationDataDigitizer:
 
         image[mask > 0] = (255, 255, 255)
         return image
+    
+    def get_cropped_image(self, image):
+        height, width, _ = image.shape
+        top = 31
+        left = 71
+        bottom = 200
+        right = 60
+        graph_hours_width = (width-left-right)/2 * self.station_data_request.graph.hours/24
+        return image[
+            top: height-bottom,
+            left: int(graph_hours_width+left),
+        ]
 
     def prepare_plot_image(self):
         image = np.asarray(bytearray(self.response.content), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR) # -1 as it is
-        height, width, _ = image.shape
-        cropped_image = image[31: height-200, 71: width-60]
+        cropped_image = self.get_cropped_image(image)
         trajectory = self.isolate_trajectory(cropped_image)
         imghsv = cv2.cvtColor(trajectory, cv2.COLOR_BGR2HSV)
         lower_blue = np.array([110, 50, 50])

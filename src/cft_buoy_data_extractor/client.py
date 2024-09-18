@@ -1,45 +1,26 @@
 from dataclasses import dataclass
-from datetime import datetime
 from urllib.parse import urlencode
 
 import requests
 
-from cft_buoy_data_extractor.constants import Graph, Graphs, Station
+from cft_buoy_data_extractor.constants import Graph, Station
 from cft_buoy_data_extractor.digitizer import StationDataDigitizer
 
 
 @dataclass
 class StationDataRequest:
     station: Station
-    begin_date: str
-    end_date: str
-    graph: "Graphs"
+    graph: "Graph"
     debug: bool = False
-
-    class UnsupportedTimedelta(Exception):
-        pass
-
-    @property
-    def timedelta_hours(self):
-        begin = datetime.strptime(self.begin_date, "%d/%m/%Y").date()
-        end = datetime.strptime(self.end_date, "%d/%m/%Y").date()
-        delta = end - begin
-        delta_days = delta.days + 1
-        if delta_days != 2:
-            raise self.UnsupportedTimedelta(
-                f"Graph behaviour is not consistent with different timedelta \
-                    therefore we only support {delta_days} days timedelta!"
-            )
-        return delta_days * 24
 
     @property
     def query_params(self):
         return urlencode(
             dict(
                 id=self.station.value,
-                begin_date=self.begin_date,
-                end_date=self.end_date,
-                type=self.graph.value.type,
+                begin_date=self.graph.date,
+                end_date=self.graph.date,
+                type=self.graph.type,
             )
         )
 
