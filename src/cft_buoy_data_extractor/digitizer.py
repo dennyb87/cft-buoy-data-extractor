@@ -6,21 +6,17 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
-import requests
 import cv2
 
 if TYPE_CHECKING:
-    from cft_buoy_data_extractor.client import StationDataRequest
+    from cft_buoy_data_extractor.constants import Graph
 
 
 @dataclass
 class StationDataDigitizer:
-    station_data_request: "StationDataRequest"
-    response: "requests.Response"
-
-    @property
-    def debug(self):
-        return self.station_data_request.debug
+    debug: bool
+    graph: "Graph"
+    raw_image: bytes
 
     def digitize_plot(self, plot_image) -> Dict[str, List[float]]:
         with (
@@ -54,9 +50,8 @@ class StationDataDigitizer:
         out = {"x": [], "y": []}
         rows = csv.reader(open(temp_csv_path), delimiter=' ')
         for x, y in rows:
-            graph = self.station_data_request.graph
-            out["x"].append(graph.get_xaxis_value(float(x)))
-            out["y"].append(graph.get_yaxis_value(float(y)))
+            out["x"].append(self.graph.get_xaxis_value(float(x)))
+            out["y"].append(self.graph.get_yaxis_value(float(y)))
         return out
 
     def to_data(self) -> Dict[str, List[float]]:
@@ -82,14 +77,14 @@ class StationDataDigitizer:
         left = 71
         bottom = 200
         right = 60
-        graph_hours_width = (width-left-right)/2 * self.station_data_request.graph.hours/24
+        graph_hours_width = (width-left-right)/2 * self.graph.hours/24
         return image[
             top: height-bottom,
             left: int(graph_hours_width+left),
         ]
 
     def prepare_plot_image(self):
-        image = np.asarray(bytearray(self.response.content), dtype="uint8")
+        image = np.asarray(bytearray(self.raw_image), dtype="uint8")
         image = cv2.imdecode(image, cv2.IMREAD_COLOR) # -1 as it is
         cropped_image = self.get_cropped_image(image)
         trajectory = self.isolate_trajectory(cropped_image)

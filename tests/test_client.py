@@ -4,14 +4,13 @@ import numpy as np
 import responses
 from expected_data import onda_linear_data
 
-from cft_buoy_data_extractor.client import (CFTBuoyDataExtractor,
-                                            StationDataRequest)
+from cft_buoy_data_extractor.client import CFTBuoyDataExtractor
 from cft_buoy_data_extractor.constants import SignificantWaveHeight, Station
 
 
 class CFTBuoyDataExtractorTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.data_request = StationDataRequest(
+        self.client = CFTBuoyDataExtractor(
             station=Station.BOA_GORGONA,
             graph=SignificantWaveHeight(hours=24, date="18/09/2024"),
             debug=False,
@@ -23,11 +22,11 @@ class CFTBuoyDataExtractorTestCase(unittest.TestCase):
         with responses.RequestsMock(assert_all_requests_are_fired=True) as rsps:
             rsps.add(
                 responses.GET,
-                f"{CFTBuoyDataExtractor.base_url}?{self.data_request.query_params}",
+                f"{self.client.base_url}?{self.client.query_params}",
                 body=self.raw_img,
                 status=200,
             )
-            data = CFTBuoyDataExtractor.get_station_data(self.data_request)
+            data = self.client.get_station_data()
 
         expected_x = onda_linear_data["x"]
         expected_y = onda_linear_data["y"]
@@ -36,16 +35,16 @@ class CFTBuoyDataExtractorTestCase(unittest.TestCase):
         np.testing.assert_almost_equal(data["y"], expected_y, decimal=6)
 
     def test_sliced(self):
-        self.data_request.graph.hours = 12
+        self.client.graph.hours = 12
 
         with responses.RequestsMock(assert_all_requests_are_fired=True) as rsps:
             rsps.add(
                 responses.GET,
-                f"{CFTBuoyDataExtractor.base_url}?{self.data_request.query_params}",
+                f"{self.client.base_url}?{self.client.query_params}",
                 body=self.raw_img,
                 status=200,
             )
-            data = CFTBuoyDataExtractor.get_station_data(self.data_request)
+            data = self.client.get_station_data()
 
         expected_x = onda_linear_data["x"][:106]
         expected_y = onda_linear_data["y"][:106]

@@ -42,6 +42,7 @@ class SignificantWaveHeight(Graph):
         """From 0 to 800 cm"""
         return value * 800
 
+
 class PeakPeriod(Graph):
     unit = "s"
     type = "Tp"
